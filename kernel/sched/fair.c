@@ -7342,12 +7342,14 @@ static inline bool task_fits_capacity(struct task_struct *p,
 	 */
 	if (capacity_orig_of(task_cpu(p)) > capacity_orig_of(cpu))
 		margin = schedtune_task_boost(p) > 0 &&
-			  !schedtune_prefer_high_cap(p) ?
+			  !schedtune_prefer_high_cap(p) &&
+			   p->prio <= DEFAULT_PRIO ?
 			sched_capacity_margin_down_boosted[task_cpu(p)] :
 			sched_capacity_margin_down[task_cpu(p)];
 	else
 		margin = schedtune_task_boost(p) > 0 &&
-			  !schedtune_prefer_high_cap(p) ?
+			  !schedtune_prefer_high_cap(p) &&
+			   p->prio <= DEFAULT_PRIO ?
 			sched_capacity_margin_up_boosted[task_cpu(p)] :
 			sched_capacity_margin_up[task_cpu(p)];
 
@@ -7454,7 +7456,8 @@ static int get_start_cpu(struct task_struct *p)
 {
 	struct root_domain *rd = cpu_rq(smp_processor_id())->rd;
 	int start_cpu = rd->min_cap_orig_cpu;
-	bool boosted = schedtune_prefer_high_cap(p) > 0 ||
+	bool boosted = (schedtune_prefer_high_cap(p) > 0 &&
+				    p->prio <= DEFAULT_PRIO) ||
 			task_boost_policy(p) == SCHED_BOOST_ON_BIG;
 	bool task_skip_min = (sched_boost() != CONSERVATIVE_BOOST)
 				&& get_rtg_status(p) && p->unfilter;
@@ -7875,7 +7878,7 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 		if ((prefer_idle && best_idle_cpu != -1) ||
 		    (prefer_high_cap &&
 		     (best_idle_cpu != -1 || target_cpu != -1))) {
-			if (prefer_high_cap) {
+			if (prefer_high_cap && p->prio <= DEFAULT_PRIO) {
 				if (!next_group_higher_cap)
 					break;
 			} else {
