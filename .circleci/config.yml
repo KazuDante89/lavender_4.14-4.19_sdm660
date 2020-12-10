@@ -1,0 +1,89 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: cimg/base:stable
+
+    environment:
+      BASE_PATH: prebuilt
+      ANYKERNEL_PATH: AnyKernel
+      CLANG_PATH: clang
+      GCC_PATH: gcc
+      GCC32_PATH: gcc32
+      GCC_BRANCH: lineage-18.0
+      IMAGEDTB_PATH: out/arch/arm64/boot/Image.gz-dtb
+      ARTIFACTS_PATH: /home/circleci/artifacts
+
+    steps:
+      - run:
+          name: Setup additional environment variables
+          command: |
+            echo "export OUTPUT_FILE=Cringe-lavender-$(date +%F)" >> $BASH_ENV
+            echo "export PATH=\"$HOME/$BASE_PATH/$CLANG_PATH/bin:$HOME/$BASE_PATH/$GCC_PATH/bin:$HOME/$BASE_PATH/$GCC32_PATH/bin:$PATH\"" >> $BASH_ENV
+            source $BASH_ENV
+            echo $PATH
+
+      - run:
+          name: Prepare build environment
+          command: |
+            sudo apt-get update
+            sudo apt install -y ccache libssl-dev bc python
+            mkdir $BASE_PATH $ARTIFACTS_PATH
+            git clone --depth=1 https://github.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-6875598.git $HOME/$BASE_PATH/$CLANG_PATH
+            git clone --depth=1 https://github.com/ElXreno/AnyKernel3.git $HOME/$BASE_PATH/$ANYKERNEL_PATH
+            git clone --depth=1 -b $GCC_BRANCH https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9.git $HOME/$BASE_PATH/$GCC_PATH
+            git clone --depth=1 -b $GCC_BRANCH https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9 $HOME/$BASE_PATH/$GCC32_PATH
+
+      - restore_cache:
+          keys:
+            - ccache-{{ .Branch }}
+            - ccache
+      
+      - restore_cache:
+          keys:
+            - source-{{ .Branch }}-{{ .Revision }}
+            - source-{{ .Branch }}
+            - source
+
+      - checkout
+
+      - run:
+          name: Build
+          command: |
+            make O=out ARCH=arm64 lavender_defconfig
+            make -j$(nproc --all) O=out \
+              ARCH=arm64 \
+              CC="ccache clang" \
+              CLANG_TRIPLE=aarch64-linux-gnu- \
+              CROSS_COMPILE=aarch64-linux-android- \
+              CROSS_COMPILE_ARM32=arm-linux-androideabi-
+
+      - run:
+          name: OnFail
+          when: on_fail
+          command: |
+            cat include/generated/compile.h
+
+      - run:
+          name: Pack
+          command: |
+            mv $IMAGEDTB_PATH $HOME/$BASE_PATH/$ANYKERNEL_PATH
+            pushd $HOME/$BASE_PATH/$ANYKERNEL_PATH
+            zip -r9 $OUTPUT_FILE.zip *
+            popd
+            mv $HOME/$BASE_PATH/$ANYKERNEL_PATH/$OUTPUT_FILE.zip $ARTIFACTS_PATH
+
+      - store_artifacts:
+          # Dublicate ARTIFACTS_PATH because CircleCI 2.0 does not support
+          # environment variables that refer to each other the same way as 1.0 did.
+          path: /home/circleci/artifacts
+
+      - save_cache:
+          key: ccache-{{ .Branch }}
+          paths:
+            - "/home/circleci/.ccache"
+
+      - save_cache:
+          key: source-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ".git"
