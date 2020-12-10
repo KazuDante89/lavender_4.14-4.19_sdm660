@@ -53,3 +53,41 @@ config ZRAM_MEMORY_TRACKING
 	  /sys/kernel/debug/zram/zramX/block_state.
 
 	  See Documentation/blockdev/zram.txt for more information.
+
+choice
+	prompt "Default ZRAM algorithm"
+	default ZRAM_COMP_ALGORITHM_LZO
+
+	config ZRAM_COMP_ALGORITHM_LZO
+		bool "LZO compression algorithm"
+
+	config ZRAM_COMP_ALGORITHM_LZ4
+		bool "LZ4 compression algorithm"
+		depends on CRYPTO_LZ4
+
+	config ZRAM_COMP_ALGORITHM_DEFLATE
+		bool "DEFLATE compression algorithm"
+		depends on CRYPTO_DEFLATE
+
+	config ZRAM_COMP_ALGORITHM_LZ4HC
+		bool "LZ4HC compression algorithm"
+		depends on CRYPTO_LZ4HC
+
+	config ZRAM_COMP_ALGORITHM_842
+		bool "842 compression algorithm"
+		depends on CRYPTO_842
+
+	config ZRAM_COMP_ALGORITHM_ZSTD
+		bool "ZSTD compression algorithm"
+		depends on CRYPTO_ZSTD
+
+endchoice
+
+config ZRAM_DEFAULT_COMP_ALGORITHM
+	string
+	default lzo if ZRAM_COMP_ALGORITHM_LZO
+	default lz4 if ZRAM_COMP_ALGORITHM_LZ4
+	default deflate if ZRAM_COMP_ALGORITHM_DEFLATE
+	default lz4hc if ZRAM_COMP_ALGORITHM_LZ4HC
+	default 842 if ZRAM_COMP_ALGORITHM_842
+	default zstd if ZRAM_COMP_ALGORITHM_ZSTD
