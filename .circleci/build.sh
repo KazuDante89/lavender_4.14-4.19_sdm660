@@ -60,7 +60,7 @@ function compile() {
 # Zipping
 function zipping() {
     cd AnyKernel || exit 1
-    zip -r9 Test.zip *
+    zip -r9 Test_v0.0.2.zip *
     cd ..
 }
 sticker
