@@ -744,6 +744,10 @@ config ARCH_HAS_HMM
 config MIGRATE_VMA_HELPER
 	bool
 
+config VMSTAT_INTERVAL
+	int "Default interval in seconds to update vmstat"
+	default 10		
+
 config HMM
 	bool
 	select MMU_NOTIFIER
