@@ -1127,7 +1127,7 @@
 			< 1113600 MHZ_TO_MBPS(200, 4) >,
 			< 1401600 MHZ_TO_MBPS(1017, 4) >,
 			< 2150400 MHZ_TO_MBPS(1555, 4) >,
-			< 2457600 MHZ_TO_MBPS(1804, 4) >;
+			< 2208000 MHZ_TO_MBPS(1804, 4) >;
 	};
 
 	cpu0_computemon: qcom,cpu0-computemon {
@@ -1135,7 +1135,7 @@
 		qcom,cpulist = <&CPU0 &CPU1 &CPU2 &CPU3>;
 		qcom,target-dev = <&cpu0_cpu_ddr_latfloor>;
 		qcom,core-dev-table =
-				< 633600 MHZ_TO_MBPS(200, 4) >,
+				< 902400 MHZ_TO_MBPS(200, 4) >,
 				< 1401600 MHZ_TO_MBPS(412, 4) >,
 				< 1881600 MHZ_TO_MBPS(768, 4) >;
 	};
@@ -1149,7 +1149,7 @@
 				< 1401600 MHZ_TO_MBPS(547, 4) >,
 				< 1747200 MHZ_TO_MBPS(768, 4) >,
 				< 2150400 MHZ_TO_MBPS(1017, 4) >,
-				< 2457600 MHZ_TO_MBPS(1804, 4) >;
+				< 2208000 MHZ_TO_MBPS(1804, 4) >;
 	};
 
 	clock_cpu: qcom,clk-cpu-660@179c0000 {
@@ -1286,12 +1286,10 @@
 		qcom,governor-per-policy;
 
 		qcom,cpufreq-table-0 =
-			<  633600 >,
 			<  902400 >,
 			< 1113600 >,
 			< 1401600 >,
 			< 1536000 >,
-			< 1612800 >,
 			< 1747200 >,
 			< 1843200 >;
 
@@ -1299,11 +1297,9 @@
 			< 1113600 >,
 			< 1401600 >,
 			< 1747200 >,
-			< 1804800 >,
 			< 1958400 >,
 			< 2150400 >,
-			< 2208000 >,
-			< 2457600 >;
+			< 2208000 >;
 	};
 
 	sdhc_1: sdhci@c0c4000 {
